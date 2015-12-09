@@ -51,32 +51,31 @@ namespace viscosityModels
 Foam::tmp<Foam::volScalarField>
 Foam::viscosityModels::UTwente::calcNu() const
 {
-    return max
+  return max
+  (
+    nuMin_,
+    min
     (
-        nuMin_,
-        min
-        (
-            nuMax_,
-            k_*pow
-            (
-                max
-                (
-                    dimensionedScalar("one", dimTime, 1.0)*strainRate(),
-                    dimensionedScalar("VSMALL", dimless, VSMALL)
-                ),
-                mu0_.value() - scalar(1.0)
-            )
-        )
-    );
+      nuMax_,
+      max
+      (
+        pressStatic()*mu0_.value()/
+        max
+         (
+             strainRate(),
+             (dimensionedScalar("VSMALL", dimless/dimTime, 0.00001))
+         ),
+        dimensionedScalar("VSMALL", dimMass/dimLength/dimTime, 0.00001)
+      )/dimensionedScalar("VSMALL", dimDensity, 1.)
+    )
+  );
 }
-/*
-Foam::tmp<Foam::volScalarField>
-Foam::viscosityModels::UTwente::pressStatic() const
-{
-  
-}
-*/
 
+
+Foam::tmp<Foam::volScalarField>
+Foam::viscosityModels::UTwente::pressStatic() const {
+  return (h0_ - U_.mesh().C().component(vector::Z))*rho0_*(9.80665*dimensionedScalar("VSMALL", dimLength/dimTime/dimTime, 1.0));
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -90,10 +89,11 @@ Foam::viscosityModels::UTwente::UTwente
 :
     viscosityModel(name, viscosityProperties, U, phi),
     UTwenteCoeffs_(viscosityProperties.subDict(typeName + "Coeffs")),
-    k_("k", dimViscosity, UTwenteCoeffs_),
     mu0_("mu0", dimless, UTwenteCoeffs_),
     nuMin_("nuMin", dimViscosity, UTwenteCoeffs_),
     nuMax_("nuMax", dimViscosity, UTwenteCoeffs_),
+    h0_("h0", dimLength, UTwenteCoeffs_),
+    rho0_("rho0", dimMass/dimLength/dimLength/dimLength, UTwenteCoeffs_),
     nu_
     (
         IOobject
@@ -128,9 +128,9 @@ Foam::viscosityModels::UTwente::UTwente
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        strainRate()
+        pressStatic()
     )
-{}
+{};
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -144,10 +144,11 @@ bool Foam::viscosityModels::UTwente::read
 
     UTwenteCoeffs_ = viscosityProperties.subDict(typeName + "Coeffs");
 
-    UTwenteCoeffs_.lookup("k") >> k_;
     UTwenteCoeffs_.lookup("mu0") >> mu0_;
     UTwenteCoeffs_.lookup("nuMin") >> nuMin_;
     UTwenteCoeffs_.lookup("nuMax") >> nuMax_;
+    UTwenteCoeffs_.lookup("h0") >> h0_;
+    UTwenteCoeffs_.lookup("rho0") >> rho0_;
 
     return true;
 }

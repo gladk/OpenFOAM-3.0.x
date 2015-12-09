@@ -60,10 +60,11 @@ class UTwente
 
         dictionary UTwenteCoeffs_;
 
-        dimensionedScalar k_;
         dimensionedScalar mu0_;
         dimensionedScalar nuMin_;
         dimensionedScalar nuMax_;
+        dimensionedScalar h0_;
+        dimensionedScalar rho0_;
 
         volScalarField nu_;
         volScalarField strainRate_;
@@ -76,7 +77,7 @@ class UTwente
         tmp<volScalarField> calcNu() const;
 
         //- Return high-dependent pressure
-        //tmp<volScalarField> pressStatic() const;
+        tmp<volScalarField> pressStatic() const;
 
 public:
 
@@ -120,7 +121,7 @@ public:
         {
             nu_ = calcNu();
             strainRate_ = strainRate();
-            pressStatic_ = strainRate();
+            pressStatic_ = pressStatic();
         }
 
         //- Read transportProperties dictionary
