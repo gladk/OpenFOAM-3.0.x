@@ -61,6 +61,9 @@ class UTwente
         dictionary UTwenteCoeffs_;
 
         dimensionedScalar mu0_;
+        dimensionedScalar beta1_;
+        dimensionedScalar beta2_;
+        dimensionedScalar A_;
         dimensionedScalar nuMin_;
         dimensionedScalar nuMax_;
         dimensionedScalar h0_;

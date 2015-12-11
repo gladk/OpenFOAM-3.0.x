@@ -59,7 +59,12 @@ Foam::viscosityModels::UTwente::calcNu() const
       nuMax_,
       max
       (
-        pressStatic()*mu0_.value()/
+        pressStatic()*
+        ( 
+          mu0_.value() + 
+          beta1_*A_ +
+          beta2_*A_*A_
+        )/
         max
          (
              strainRate(),
@@ -90,6 +95,9 @@ Foam::viscosityModels::UTwente::UTwente
     viscosityModel(name, viscosityProperties, U, phi),
     UTwenteCoeffs_(viscosityProperties.subDict(typeName + "Coeffs")),
     mu0_("mu0", dimless, UTwenteCoeffs_),
+    beta1_("beta1", dimless, UTwenteCoeffs_),
+    beta2_("beta2", dimless, UTwenteCoeffs_),
+    A_("A", dimless, UTwenteCoeffs_),
     nuMin_("nuMin", dimViscosity, UTwenteCoeffs_),
     nuMax_("nuMax", dimViscosity, UTwenteCoeffs_),
     h0_("h0", dimLength, UTwenteCoeffs_),
@@ -145,6 +153,9 @@ bool Foam::viscosityModels::UTwente::read
     UTwenteCoeffs_ = viscosityProperties.subDict(typeName + "Coeffs");
 
     UTwenteCoeffs_.lookup("mu0") >> mu0_;
+    UTwenteCoeffs_.lookup("beta1") >> beta1_;
+    UTwenteCoeffs_.lookup("beta2") >> beta2_;
+    UTwenteCoeffs_.lookup("A") >> A_;
     UTwenteCoeffs_.lookup("nuMin") >> nuMin_;
     UTwenteCoeffs_.lookup("nuMax") >> nuMax_;
     UTwenteCoeffs_.lookup("h0") >> h0_;
